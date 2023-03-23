@@ -1,4 +1,5 @@
 use actix_web::{get, middleware::Logger, post, App, HttpResponse, HttpServer, Responder};
+use env_logger::Env;
 extern crate redis;
 use dotenv::dotenv;
 use redis::Commands;
@@ -16,6 +17,7 @@ async fn create_secret(msg: String) -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
+    env_logger::init_from_env(Env::default().default_filter_or("info"));
     let db_connection_string =
         std::env::var("redis").expect("redis database connection string must be set");
     let client = redis::Client::open(db_connection_string).unwrap();
