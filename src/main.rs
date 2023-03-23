@@ -1,4 +1,7 @@
-use actix_web::{get, middleware::Logger, post, web, App, HttpResponse, HttpServer, Responder, http::header::ContentType};
+use actix_web::{
+    get, http::header::ContentType, middleware::Logger, post, web, App, HttpResponse, HttpServer,
+    Responder,
+};
 use env_logger::Env;
 extern crate redis;
 use dotenv::dotenv;
@@ -11,21 +14,32 @@ use model::SecretRequest;
 #[get("/secret/{uuid}")]
 async fn get_and_delete_secret(
     path: web::Path<String>,
-    redis: web::Data<redis::Client>) -> impl Responder {
+    redis: web::Data<redis::Client>,
+) -> impl Responder {
     let uuid = path.into_inner();
     let mut connection = redis.get_connection().unwrap();
-    let data: Option<String> = connection.get(&uuid).or_else(|e| {
-        println!("Error: {:?}", e);
-        Err(e)
-    }).unwrap();
-    if data.is_some() {
-        let _: () = connection.del(&uuid).or_else(|e| {
+    let data: Option<String> = connection
+        .get(&uuid)
+        .or_else(|e| {
             println!("Error: {:?}", e);
             Err(e)
-        }).unwrap();
-        return HttpResponse::Ok().content_type(ContentType::json()).body(format!("{{\"data\": \"{}\"}}", data.unwrap()));
+        })
+        .unwrap();
+    if data.is_some() {
+        let _: () = connection
+            .del(&uuid)
+            .or_else(|e| {
+                println!("Error: {:?}", e);
+                Err(e)
+            })
+            .unwrap();
+        return HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .body(format!("{{\"data\": \"{}\"}}", data.unwrap()));
     }
-    HttpResponse::NotFound().content_type(ContentType::json()).body(format!("{{\"error\": \"not found\"}}"))
+    HttpResponse::NotFound()
+        .content_type(ContentType::json())
+        .body(format!("{{\"error\": \"not found\"}}"))
 }
 
 #[post("/secret")]
@@ -42,7 +56,9 @@ async fn create_secret(
             Err(e)
         })
         .unwrap();
-    HttpResponse::Ok().content_type(ContentType::json()).body(format!("{{\"uuid\": \"{}\"}}", uuid))
+    HttpResponse::Ok()
+        .content_type(ContentType::json())
+        .body(format!("{{\"uuid\": \"{}\"}}", uuid))
 }
 
 #[actix_web::main]
