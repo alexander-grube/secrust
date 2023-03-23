@@ -1,8 +1,15 @@
-use std::time::Duration;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-#[derive(Debug)]
-pub struct Secret {
-    pub id: i32,
+#[derive(Deserialize, Serialize, Debug)]
+pub struct SecretRequest {
     pub data: String,
-    pub ttl: Duration,
+    pub ttl: usize,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct SecretReponse {
+    pub uuid: Uuid,
+    pub data: String,
+    pub ttl: usize,
 }
