@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{
     get, http::header::ContentType, middleware::Logger, post, web, App, HttpResponse, HttpServer,
     Responder,
@@ -69,13 +70,18 @@ async fn main() -> std::io::Result<()> {
         std::env::var("redis").expect("redis database connection string must be set");
     let redis = redis::Client::open(db_connection_string).unwrap();
     HttpServer::new(move || {
+        let cors = Cors::default()
+        .allow_any_origin()
+        .allow_any_method()
+        .allow_any_header();
         App::new()
             .app_data(web::Data::new(redis.clone()))
             .wrap(Logger::default())
+            .wrap(cors)
             .service(get_and_delete_secret)
             .service(create_secret)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("0.0.0.0", 8080))?
     .run()
     .await
 }
