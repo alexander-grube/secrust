@@ -12,6 +12,30 @@ mod model;
 
 use model::SecretRequest;
 
+#[get("/secret/exists/{uuid}")]
+async fn does_secret_exist(
+    path: web::Path<String>,
+    redis: web::Data<redis::Client>,
+) -> impl Responder {
+    let uuid = path.into_inner();
+    let mut connection = redis.get_connection().unwrap();
+    let data: Option<String> = connection
+        .get(&uuid)
+        .or_else(|e| {
+            println!("Error: {:?}", e);
+            Err(e)
+        })
+        .unwrap();
+    if data.is_some() {
+        return HttpResponse::Ok()
+            .content_type(ContentType::json())
+            .body(format!("{{\"exists\": true}}"));
+    }
+    HttpResponse::NotFound()
+        .content_type(ContentType::json())
+        .body(format!("{{\"error\": \"not found\"}}"))
+}
+
 #[get("/secret/{uuid}")]
 async fn get_and_delete_secret(
     path: web::Path<String>,
@@ -78,6 +102,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(redis.clone()))
             .wrap(Logger::default())
             .wrap(cors)
+            .service(does_secret_exist)
             .service(get_and_delete_secret)
             .service(create_secret)
     })
