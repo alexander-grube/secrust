@@ -95,9 +95,9 @@ async fn main() -> std::io::Result<()> {
     let redis = redis::Client::open(db_connection_string).unwrap();
     HttpServer::new(move || {
         let cors = Cors::default()
-        .allow_any_origin()
-        .allow_any_method()
-        .allow_any_header();
+            .allow_any_origin()
+            .allow_any_method()
+            .allow_any_header();
         App::new()
             .app_data(web::Data::new(redis.clone()))
             .wrap(Logger::default())
